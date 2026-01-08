@@ -3,17 +3,19 @@ let cols = 15;
 let playing = false;
 
 let timer;
-let reproductionTime = 1000;
+let reproductionTime = 500;
 
 let grid = new Array(rows);
 let nextGrid = new Array(rows);
 
-function initializeGrids() {
-    for (let i = 0; i < rows; i++) {
-        grid[i] = new Array(cols);
-        nextGrid[i] = new Array(cols);
-    }
-}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    createTable();
+    initializeGrids();
+    resetGrids();
+    setupControlButtons();
+});
 
 function resetGrids() {
     for (let i = 0; i < rows; i++) {
@@ -24,16 +26,16 @@ function resetGrids() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    createTable();
-    initializeGrids()
-    setupControlButtons();
-    resetGrids()
-});
+function initializeGrids() {
+    for (let i = 0; i < rows; i++) {
+        grid[i] = new Array(cols);
+        nextGrid[i] = new Array(cols);
+    }
+}
 
-
+// lay out the board
 function createTable() {
-    let gridContainer = document.querySelector("#gridContainer");
+    let gridContainer = document.getElementById("gridContainer");
     if (!gridContainer) {
         // throw error
         console.error("Problem: no div for the grid table!");
@@ -52,6 +54,20 @@ function createTable() {
         table.appendChild(tr);
     }
     gridContainer.appendChild(table);
+}
+
+function cellClickHandler() {
+    let rowcol = this.id.split("_");
+    let row = rowcol[0];
+    let col = rowcol[1];
+    let classes = this.getAttribute('class');
+    if (classes.indexOf('live') > -1) {
+        this.setAttribute('class', 'dead');
+        grid[row][col] = 0;
+    } else {
+        this.setAttribute('class', 'live');
+        grid[row][col] = 1;
+    }
 }
 
 function setupControlButtons() {
@@ -76,7 +92,8 @@ function setupControlButtons() {
     clearButton.onclick = () => {
         playing = false;
         startButton.innerHTML = "start";
-
+        resetGrids();
+        updateView();
     };
 
     rButton.onclick = () => {
@@ -89,16 +106,18 @@ function setupControlButtons() {
             }
         }
     }
+
 }
 
 function play() {
-    console.log("hra hraje");
+    console.log("Play the game");
     computeNextGen();
 
     if (playing) {
         timer = setTimeout(play, reproductionTime);
     }
-}
+
+};
 
 function computeNextGen() {
     for (let i = 0; i < rows; i++) {
@@ -134,6 +153,7 @@ function updateView() {
 
 function applyRules(row, col) {
     let numNeighbors = countNeighbors(row, col);
+
     if (grid[row][col] == 1) {
         if (numNeighbors < 2) {
             nextGrid[row][col] = 0;
@@ -149,8 +169,10 @@ function applyRules(row, col) {
     }
 }
 
+
 function countNeighbors(row, col) {
     let count = 0;
+
     if (row - 1 >= 0) {
         if (grid[row - 1][col] == 1) count++;
     }
@@ -175,22 +197,5 @@ function countNeighbors(row, col) {
     if (row + 1 < rows && col + 1 < cols) {
         if (grid[row + 1][col + 1] == 1) count++;
     }
-    console.log("buňka: row: " + row + " col: " + col + " ma sousedu:" + count);
     return count;
-}
-
-function cellClickHandler() {
-
-    let rowcol = this.id.split("_");
-    let row = rowcol[0];
-    let col = rowcol[1];
-
-    let classes = this.getAttribute('class');
-    if (classes.indexOf('live') > -1) {
-        this.setAttribute('class', 'dead');
-        grid[row][col] = 0;
-    } else {
-        this.setAttribute('class', 'live');
-        grid[row][col] = 1;
-    }
 }
